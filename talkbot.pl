@@ -54,6 +54,12 @@ sub remember {
         return;
     }
 
+    # ignore hyperlinks
+    if ($data->{body} =~ m{\b(https?://|www)}) {
+        talkbot_log("ignored $data->{channel} (line contains a link)");
+        return;
+    }
+
     # delete highlight
     my @local_nicks = keys %{$self->channel_data($data->{channel})};
     $message =~ s/^\Q$_\E[,:]?\s+(.*)/$1/ for @local_nicks;
@@ -68,7 +74,7 @@ sub remember {
     }
 
     # remember
-    my $message = TalkBot::Message->create(
+    TalkBot::Message->create(
         channel => $data->{channel},
         nick    => $data->{who},
         time    => time,
@@ -116,11 +122,20 @@ sub react {
     push @queue, {message => $msg, channel => $data->{channel}};
     $self->schedule_tick($pause);
 
-    # reset counter
-    $count{$data->{channel}} = 0;
-
     # reset message time
     $message->update(time => time + $pause);
+
+    # log
+    (my $short = $data->{body}) =~ s/^(.{17}).{3,}/$1.../;
+    talkbot_log(
+        "scheduled msg to $data->{channel}"
+        . " (count: $count{$data->{channel}})"
+        . " from '<$data->{who}> $data->{body}'"
+        . " in $pause seconds"
+    );
+
+    # reset counter
+    $count{$data->{channel}} = 0;
 }
 
 # got a message
