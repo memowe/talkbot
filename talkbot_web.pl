@@ -84,7 +84,6 @@ __DATA__
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="<%= config('web_refresh') %>">
 <title>TalkBot Messages</title>
 <style type="text/css">
 caption { font-size: 1.2em; font-weight: bold; margin: 1em 0 }
