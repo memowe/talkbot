@@ -46,6 +46,7 @@ sub talkbot_log {
 # remember messages from 'said' hashes
 sub remember {
     my ($self, $data) = @_;
+    my $message = $data->{body};
 
     # ignore some channels
     if ($data->{channel} ~~ $config->{ignore_channels}) {
@@ -55,12 +56,12 @@ sub remember {
 
     # delete highlight
     my @local_nicks = keys %{$self->channel_data($data->{channel})};
-    $data->{body} =~ s/^\Q$_\E[,:]?\s+(.*)/$1/ for @local_nicks;
+    $message =~ s/^\Q$_\E[,:]?\s+(.*)/$1/ for @local_nicks;
 
     # ignore text with nick names after highlight
     my @nicks = map { keys %{$self->channel_data($_)} } $self->channels;
     foreach my $nick (@nicks) {
-        if ($data->{body} =~ /\Q$nick\E/) {
+        if ($message =~ /\Q$nick\E/) {
             talkbot_log("ignored $data->{channel} (line contains $nick)");
             return;
         }
@@ -71,12 +72,12 @@ sub remember {
         channel => $data->{channel},
         nick    => $data->{who},
         time    => time,
-        text    => $data->{body},
+        text    => $message,
     );
 
     # log
-    (my $short_body = $data->{body}) =~ s/^(.{17}).{3,}/$1.../;
-    talkbot_log("in $data->{channel} $data->{who} said: $short_body");
+    (my $short = $message) =~ s/^(.{17}).{3,}/$1.../;
+    talkbot_log("in $data->{channel} $data->{who} said: $short");
 }
 
 # react on messages
